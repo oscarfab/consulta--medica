@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install *)",
+      "Bash(npx tsc *)",
+      "Bash(npx shadcn@latest add input label textarea select card badge dialog separator tabs avatar checkbox --yes)",
+      "Bash(npx prisma *)"
+    ]
+  }
+}
