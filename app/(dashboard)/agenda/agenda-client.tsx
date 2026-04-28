@@ -103,6 +103,7 @@ export function AgendaClient({ patients, doctors, currentUserId, userRole }: Pro
   };
 
   const openEdit = (appt: Appointment) => {
+    if (!patients.length || !doctors.length) return;
     setEditingAppt(appt);
     reset({
       patientId: appt.patient.id,
@@ -331,7 +332,7 @@ export function AgendaClient({ patients, doctors, currentUserId, userRole }: Pro
                 control={control}
                 name="patientId"
                 render={({ field }) => (
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select key={`patient-${editingAppt?.id ?? "new"}`} onValueChange={field.onChange} value={field.value}>
                     <SelectTrigger className={errors.patientId ? "border-red-500" : ""}>
                       <SelectValue placeholder="Seleccionar paciente" />
                     </SelectTrigger>
@@ -352,7 +353,7 @@ export function AgendaClient({ patients, doctors, currentUserId, userRole }: Pro
                 control={control}
                 name="doctorId"
                 render={({ field }) => (
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select key={`doctor-${editingAppt?.id ?? "new"}`} onValueChange={field.onChange} value={field.value}>
                     <SelectTrigger>
                       <SelectValue placeholder="Seleccionar médico" />
                     </SelectTrigger>

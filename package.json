@@ -9,6 +9,7 @@
     "lint": "eslint",
     "db:push": "prisma db push",
     "db:seed": "npx ts-node --compiler-options \"{\\\"module\\\":\\\"CommonJS\\\"}\" prisma/seed.ts",
+    "setup:prod": "npx tsx scripts/setup-prod.ts",
     "seed:masivo": "npx tsx prisma/seed-masivo.ts",
     "seed:citas": "npx tsx prisma/seed-citas.ts",
     "db:studio": "prisma studio",
