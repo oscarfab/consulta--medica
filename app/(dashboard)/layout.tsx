@@ -26,6 +26,7 @@ export default async function DashboardLayout({
         userName={session.user.name}
         userRole={session.user.role}
         userInitials={initials}
+        userSpecialty={session.user.specialty}
       />
       <main className="flex-1 overflow-y-auto lg:pl-0 pt-0">
         <div className="lg:p-8 p-4 pt-16 lg:pt-8 max-w-7xl mx-auto">

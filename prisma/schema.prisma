@@ -36,6 +36,12 @@ enum BloodType {
   DESCONOCIDO
 }
 
+enum PrescriptionStatus {
+  DRAFT
+  SENT
+  EXPIRED
+}
+
 model User {
   id            String   @id @default(cuid())
   email         String   @unique
@@ -66,6 +72,8 @@ model Patient {
   curp             String?   @unique
   bloodType        BloodType @default(DESCONOCIDO)
   phone            String?
+  email            String?
+  whatsapp         String?
   address          String?
   city             String?
   state            String?
@@ -188,11 +196,20 @@ model MedicalNote {
 }
 
 model Prescription {
-  id          String   @id @default(cuid())
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  medications Json
-  notes       String?
+  id              String             @id @default(cuid())
+  folio           String             @unique @default("")
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+  medications     Json
+  notes           String?
+  diagnosis       String?
+  status          PrescriptionStatus @default(DRAFT)
+  emailSentAt     DateTime?
+  whatsappSentAt  DateTime?
+  patientEmail    String?
+  patientPhone    String?
+  qrCode          String?
+  validUntil      DateTime
 
   noteId String      @unique
   note   MedicalNote @relation(fields: [noteId], references: [id], onDelete: Cascade)

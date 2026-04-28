@@ -1,11 +1,13 @@
 import { prisma } from "@/lib/prisma";
+import { auth } from "@/lib/auth";
 import { notFound } from "next/navigation";
 import { differenceInYears, format, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
 import Link from "next/link";
 import {
   ArrowLeft, Edit, CalendarPlus, ClipboardPlus, FileText,
-  Phone, MapPin, User, Droplets, Shield, Clock, Stethoscope
+  Phone, MapPin, User, Shield, Clock, Stethoscope,
+  FilePlus, ExternalLink, Send, MessageCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -28,8 +30,22 @@ const STATUS_LABELS: Record<string, string> = {
   PENDIENTE: "Pendiente", ATENDIDO: "Atendido", CANCELADO: "Cancelado",
 };
 
+const RX_STATUS_COLORS: Record<string, string> = {
+  DRAFT: "bg-slate-100 text-slate-600",
+  SENT: "bg-green-100 text-green-700",
+  EXPIRED: "bg-red-100 text-red-700",
+};
+
+const RX_STATUS_LABELS: Record<string, string> = {
+  DRAFT: "Borrador",
+  SENT: "Enviada",
+  EXPIRED: "Caducada",
+};
+
 export default async function PatientDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
+  const session = await auth();
+  const isDoctor = session?.user.role === "MEDICO";
 
   const patient = await prisma.patient.findUnique({
     where: { id },
@@ -42,7 +58,17 @@ export default async function PatientDetailPage({ params }: { params: Promise<{ 
         orderBy: { consultationDate: "desc" },
         include: {
           doctor: { select: { name: true, specialty: true } },
-          prescription: { select: { id: true } },
+          prescription: {
+            select: {
+              id: true,
+              folio: true,
+              createdAt: true,
+              medications: true,
+              status: true,
+              emailSentAt: true,
+              whatsappSentAt: true,
+            },
+          },
         },
       },
       clinicalBackground: true,
@@ -78,12 +104,14 @@ export default async function PatientDetailPage({ params }: { params: Promise<{ 
               Nueva cita
             </Button>
           </Link>
-          <Link href={`/pacientes/${patient.id}/nota-medica/nueva`}>
-            <Button variant="outline" size="sm" className="gap-1.5">
-              <ClipboardPlus className="w-4 h-4" />
-              Nueva nota
-            </Button>
-          </Link>
+          {isDoctor && (
+            <Link href={`/pacientes/${patient.id}/nota-medica/nueva`}>
+              <Button variant="outline" size="sm" className="gap-1.5">
+                <ClipboardPlus className="w-4 h-4" />
+                Nueva nota
+              </Button>
+            </Link>
+          )}
           <Link href={`/pacientes/${patient.id}/editar`}>
             <Button className="bg-[#0D9488] hover:bg-[#0f766e] text-white gap-1.5" size="sm">
               <Edit className="w-4 h-4" />
@@ -96,8 +124,13 @@ export default async function PatientDetailPage({ params }: { params: Promise<{ 
       <Tabs defaultValue="info" className="space-y-4">
         <TabsList className="bg-white border border-slate-200">
           <TabsTrigger value="info">Información</TabsTrigger>
-          <TabsTrigger value="antecedentes">Antecedentes</TabsTrigger>
-          <TabsTrigger value="notas">Notas médicas ({patient.medicalNotes.length})</TabsTrigger>
+          {isDoctor && <TabsTrigger value="antecedentes">Antecedentes</TabsTrigger>}
+          {isDoctor && <TabsTrigger value="notas">Notas médicas ({patient.medicalNotes.length})</TabsTrigger>}
+          {isDoctor && (
+            <TabsTrigger value="recetas">
+              Recetas ({patient.medicalNotes.filter((n) => n.prescription).length})
+            </TabsTrigger>
+          )}
           <TabsTrigger value="citas">Citas ({patient.appointments.length})</TabsTrigger>
         </TabsList>
 
@@ -128,6 +161,8 @@ export default async function PatientDetailPage({ params }: { params: Promise<{ 
               </CardHeader>
               <CardContent className="space-y-3 text-sm">
                 <Row label="Teléfono" value={patient.phone || "—"} />
+                <Row label="Correo" value={patient.email || "—"} />
+                <Row label="WhatsApp" value={patient.whatsapp || "—"} />
                 <Row label="Contacto de emergencia" value={patient.emergencyContact || "—"} />
                 <Row label="Tel. emergencia" value={patient.emergencyPhone || "—"} />
               </CardContent>
@@ -163,8 +198,8 @@ export default async function PatientDetailPage({ params }: { params: Promise<{ 
           </div>
         </TabsContent>
 
-        {/* Antecedentes tab */}
-        <TabsContent value="antecedentes">
+        {/* Antecedentes tab — doctor only */}
+        {isDoctor && <TabsContent value="antecedentes">
           <div className="flex items-center justify-between mb-4">
             <p className="text-sm text-slate-500">
               {patient.clinicalBackground ? "Antecedentes registrados" : "Sin antecedentes registrados"}
@@ -187,10 +222,10 @@ export default async function PatientDetailPage({ params }: { params: Promise<{ 
               </CardContent>
             </Card>
           )}
-        </TabsContent>
+        </TabsContent>}
 
-        {/* Medical notes tab */}
-        <TabsContent value="notas" className="space-y-3">
+        {/* Medical notes tab — doctor only */}
+        {isDoctor && <TabsContent value="notas" className="space-y-3">
           <div className="flex justify-end">
             <Link href={`/pacientes/${patient.id}/nota-medica/nueva`}>
               <Button size="sm" className="bg-[#0D9488] hover:bg-[#0f766e] text-white gap-1.5">
@@ -247,7 +282,125 @@ export default async function PatientDetailPage({ params }: { params: Promise<{ 
               </Card>
             ))
           )}
-        </TabsContent>
+        </TabsContent>}
+
+        {/* Recetas tab — doctor only */}
+        {isDoctor && (
+          <TabsContent value="recetas" className="space-y-4">
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-slate-500">
+                Historial de recetas electrónicas del paciente
+              </p>
+              <Link href={`/pacientes/${patient.id}/receta/nueva`}>
+                <Button size="sm" className="bg-[#0D9488] hover:bg-[#0f766e] text-white gap-1.5">
+                  <FilePlus className="w-3.5 h-3.5" />
+                  Nueva receta
+                </Button>
+              </Link>
+            </div>
+
+            {patient.medicalNotes.filter((n) => n.prescription).length === 0 ? (
+              <Card className="border-0 shadow-sm">
+                <CardContent className="text-center py-12 text-slate-400">
+                  <FileText className="w-10 h-10 mx-auto mb-3 opacity-30" />
+                  <p className="text-sm font-medium">Sin recetas registradas</p>
+                  <p className="text-xs mt-1">Las recetas aparecerán aquí una vez creadas desde una nota médica</p>
+                </CardContent>
+              </Card>
+            ) : (
+              <Card className="border-0 shadow-sm overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-slate-100 bg-slate-50">
+                        <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Folio</th>
+                        <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Fecha</th>
+                        <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Medicamentos</th>
+                        <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Estado</th>
+                        <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Enviada</th>
+                        <th className="text-right px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Acciones</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-50">
+                      {patient.medicalNotes
+                        .filter((n) => n.prescription)
+                        .map((note) => {
+                          const rx = note.prescription!;
+                          const meds = (rx.medications as Array<{ name: string }>) ?? [];
+                          const medsResumen = meds
+                            .slice(0, 2)
+                            .map((m) => m.name)
+                            .join(", ") + (meds.length > 2 ? ` +${meds.length - 2} más` : "");
+
+                          return (
+                            <tr key={rx.id} className="hover:bg-slate-50 transition-colors">
+                              <td className="px-4 py-3">
+                                <span className="font-mono text-xs font-semibold text-slate-700">
+                                  {rx.folio || "—"}
+                                </span>
+                              </td>
+                              <td className="px-4 py-3 text-xs text-slate-600 whitespace-nowrap">
+                                {format(new Date(rx.createdAt), "dd/MM/yyyy", { locale: es })}
+                              </td>
+                              <td className="px-4 py-3">
+                                <p className="text-xs text-slate-600 max-w-[200px] truncate">
+                                  {medsResumen || "—"}
+                                </p>
+                              </td>
+                              <td className="px-4 py-3">
+                                <span
+                                  className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                                    RX_STATUS_COLORS[rx.status] ?? RX_STATUS_COLORS.DRAFT
+                                  }`}
+                                >
+                                  {RX_STATUS_LABELS[rx.status] ?? rx.status}
+                                </span>
+                              </td>
+                              <td className="px-4 py-3">
+                                <div className="flex items-center gap-1.5">
+                                  {rx.emailSentAt && (
+                                    <span title="Enviada por correo">
+                                      <Send className="w-3.5 h-3.5 text-blue-500" />
+                                    </span>
+                                  )}
+                                  {rx.whatsappSentAt && (
+                                    <span title="Enviada por WhatsApp">
+                                      <MessageCircle className="w-3.5 h-3.5 text-green-500" />
+                                    </span>
+                                  )}
+                                  {!rx.emailSentAt && !rx.whatsappSentAt && (
+                                    <span className="text-xs text-slate-300">—</span>
+                                  )}
+                                </div>
+                              </td>
+                              <td className="px-4 py-3">
+                                <div className="flex items-center justify-end gap-1.5">
+                                  <Link href={`/pacientes/${patient.id}/receta/${rx.id}`}>
+                                    <Button size="sm" variant="outline" className="text-xs h-7 px-2 gap-1">
+                                      <FileText className="w-3 h-3" />
+                                      Ver PDF
+                                    </Button>
+                                  </Link>
+                                  {rx.folio && (
+                                    <Link href={`/verificar/${rx.folio}`} target="_blank">
+                                      <Button size="sm" variant="outline" className="text-xs h-7 px-2 gap-1">
+                                        <ExternalLink className="w-3 h-3" />
+                                        Verificador
+                                      </Button>
+                                    </Link>
+                                  )}
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                    </tbody>
+                  </table>
+                </div>
+              </Card>
+            )}
+          </TabsContent>
+        )}
 
         {/* Appointments tab */}
         <TabsContent value="citas" className="space-y-3">
@@ -270,7 +423,7 @@ export default async function PatientDetailPage({ params }: { params: Promise<{ 
                   </p>
                   <p className="text-xs text-slate-500">
                     Dr. {appt.doctor.name}
-                    {appt.reason && ` · ${appt.reason}`}
+                    {isDoctor && appt.reason && ` · ${appt.reason}`}
                   </p>
                 </div>
                 <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_COLORS[appt.status]}`}>

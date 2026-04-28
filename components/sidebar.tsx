@@ -17,31 +17,46 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 
-const navItems = [
+const DOCTOR_NAV = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/agenda", label: "Agenda", icon: Calendar },
   { href: "/pacientes", label: "Pacientes", icon: Users },
   { href: "/configuracion", label: "Configuración", icon: Settings },
 ];
 
+const RECEPTIONIST_NAV = [
+  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/agenda", label: "Agenda", icon: Calendar },
+  { href: "/pacientes", label: "Pacientes", icon: Users },
+];
+
 interface SidebarProps {
   userName: string;
   userRole: string;
   userInitials: string;
+  userSpecialty?: string;
 }
 
-export function Sidebar({ userName, userRole, userInitials }: SidebarProps) {
+export function Sidebar({ userName, userRole, userInitials, userSpecialty }: SidebarProps) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  const roleLabel = userRole === "MEDICO" ? "Médico" : "Recepcionista";
+  const isDoctor = userRole === "MEDICO";
+  const navItems = isDoctor ? DOCTOR_NAV : RECEPTIONIST_NAV;
+  const accentColor = isDoctor ? "#0D9488" : "#1E40AF";
+  const accentHover = isDoctor ? "#0f766e" : "#1d3ea0";
+  const accentBg = isDoctor ? "bg-[#0D9488]" : "bg-[#1E40AF]";
 
   const NavContent = () => (
     <>
       {/* Logo */}
       <div className="flex items-center gap-3 px-4 py-5 border-b border-slate-200">
-        <div className="w-9 h-9 rounded-xl bg-[#0D9488] flex items-center justify-center flex-shrink-0">
+        <div
+          className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+          style={{ backgroundColor: accentColor }}
+        >
           <Stethoscope className="w-5 h-5 text-white" />
         </div>
         <div className="min-w-0">
@@ -63,9 +78,10 @@ export function Sidebar({ userName, userRole, userInitials }: SidebarProps) {
               className={cn(
                 "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
                 isActive
-                  ? "bg-[#0D9488] text-white shadow-sm"
+                  ? "text-white shadow-sm"
                   : "text-slate-600 hover:bg-slate-100 hover:text-slate-800"
               )}
+              style={isActive ? { backgroundColor: accentColor } : undefined}
             >
               <Icon className="w-4 h-4 flex-shrink-0" />
               {item.label}
@@ -78,13 +94,24 @@ export function Sidebar({ userName, userRole, userInitials }: SidebarProps) {
       <div className="p-3 border-t border-slate-200">
         <div className="flex items-center gap-3 px-2 py-2 mb-2 rounded-lg bg-slate-50">
           <Avatar className="w-8 h-8">
-            <AvatarFallback className="bg-[#0D9488] text-white text-xs font-semibold">
+            <AvatarFallback
+              className="text-white text-xs font-semibold"
+              style={{ backgroundColor: accentColor }}
+            >
               {userInitials}
             </AvatarFallback>
           </Avatar>
           <div className="min-w-0 flex-1">
             <p className="text-xs font-semibold text-slate-800 truncate">{userName}</p>
-            <p className="text-xs text-slate-500">{roleLabel}</p>
+            {isDoctor && userSpecialty ? (
+              <p className="text-xs text-slate-500 truncate">{userSpecialty}</p>
+            ) : null}
+            <Badge
+              className="text-[10px] px-1.5 py-0 mt-0.5 text-white border-0"
+              style={{ backgroundColor: accentColor }}
+            >
+              {isDoctor ? "Médico" : "Recepción"}
+            </Badge>
           </div>
         </div>
         <Button
@@ -105,7 +132,8 @@ export function Sidebar({ userName, userRole, userInitials }: SidebarProps) {
       {/* Mobile toggle */}
       <button
         onClick={() => setMobileOpen(!mobileOpen)}
-        className="lg:hidden fixed top-4 left-4 z-50 w-9 h-9 rounded-lg bg-[#0D9488] text-white flex items-center justify-center shadow-md"
+        className="lg:hidden fixed top-4 left-4 z-50 w-9 h-9 rounded-lg text-white flex items-center justify-center shadow-md"
+        style={{ backgroundColor: accentColor }}
       >
         {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
       </button>

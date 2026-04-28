@@ -17,7 +17,7 @@ export default async function NuevaRecetaPage({
   const [patient, doctor] = await Promise.all([
     prisma.patient.findUnique({
       where: { id },
-      select: { id: true, fullName: true, birthdate: true },
+      select: { id: true, fullName: true, birthdate: true, email: true, phone: true, whatsapp: true },
     }),
     prisma.user.findUnique({
       where: { id: session?.user.id },

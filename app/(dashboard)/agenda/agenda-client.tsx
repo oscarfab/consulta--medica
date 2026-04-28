@@ -52,11 +52,13 @@ interface Props {
   patients: Patient[];
   doctors: Doctor[];
   currentUserId: string;
+  userRole: string;
 }
 
 const HOURS = Array.from({ length: 13 }, (_, i) => i + 7); // 7am to 7pm
 
-export function AgendaClient({ patients, doctors, currentUserId }: Props) {
+export function AgendaClient({ patients, doctors, currentUserId, userRole }: Props) {
+  const isDoctor = userRole === "MEDICO";
   const [weekStart, setWeekStart] = useState(() => startOfWeek(new Date(), { weekStartsOn: 1 }));
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(false);
@@ -289,7 +291,7 @@ export function AgendaClient({ patients, doctors, currentUserId }: Props) {
                       >
                         <span className="font-semibold">{format(parseISO(a.date), "HH:mm")}</span>
                         <span className="font-medium">{a.patient.fullName}</span>
-                        {a.reason && <span className="text-slate-500 truncate max-w-24">· {a.reason}</span>}
+                        {isDoctor && a.reason && <span className="text-slate-500 truncate max-w-24">· {a.reason}</span>}
                         <div className="flex gap-1 ml-auto">
                           <button onClick={() => openEdit(a)} className="hover:opacity-70"><Edit className="w-3 h-3" /></button>
                           <button onClick={() => deleteAppt(a.id)} className="hover:opacity-70"><Trash2 className="w-3 h-3" /></button>
@@ -374,10 +376,12 @@ export function AgendaClient({ patients, doctors, currentUserId }: Props) {
               {errors.date && <p className="text-xs text-red-500">{errors.date.message}</p>}
             </div>
 
-            <div className="space-y-1.5">
-              <Label>Motivo</Label>
-              <Input placeholder="Ej. Consulta general, revisión..." {...register("reason")} />
-            </div>
+            {isDoctor && (
+              <div className="space-y-1.5">
+                <Label>Motivo de consulta</Label>
+                <Input placeholder="Ej. Consulta general, revisión..." {...register("reason")} />
+              </div>
+            )}
 
             {editingAppt && (
               <div className="space-y-1.5">

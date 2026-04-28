@@ -14,7 +14,7 @@ export default async function PrescriptionPage({
     include: {
       note: {
         include: {
-          patient: { select: { fullName: true, birthdate: true } },
+          patient: { select: { id: true, fullName: true, birthdate: true, email: true, phone: true, whatsapp: true } },
           doctor: {
             select: {
               name: true,

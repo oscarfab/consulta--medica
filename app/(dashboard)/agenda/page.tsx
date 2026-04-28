@@ -13,5 +13,12 @@ export default async function AgendaPage() {
     select: { id: true, name: true },
   });
 
-  return <AgendaClient patients={patients} doctors={doctors} currentUserId={session?.user.id || ""} />;
+  return (
+    <AgendaClient
+      patients={patients}
+      doctors={doctors}
+      currentUserId={session?.user.id || ""}
+      userRole={session?.user.role || "RECEPCIONISTA"}
+    />
+  );
 }

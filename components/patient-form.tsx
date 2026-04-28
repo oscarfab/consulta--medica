@@ -23,6 +23,8 @@ const patientSchema = z.object({
   curp: z.string().optional().or(z.literal("")),
   bloodType: z.enum(["A_POS", "A_NEG", "B_POS", "B_NEG", "AB_POS", "AB_NEG", "O_POS", "O_NEG", "DESCONOCIDO"]).optional(),
   phone: z.string().optional().or(z.literal("")),
+  email: z.string().email("Correo inválido").optional().or(z.literal("")),
+  whatsapp: z.string().optional().or(z.literal("")),
   address: z.string().optional().or(z.literal("")),
   city: z.string().optional().or(z.literal("")),
   state: z.string().optional().or(z.literal("")),
@@ -197,6 +199,17 @@ export function PatientForm({ patientId, defaultValues }: PatientFormProps) {
               <div className="space-y-1.5">
                 <Label>Teléfono</Label>
                 <Input placeholder="55 1234 5678" type="tel" {...register("phone")} />
+              </div>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label>Correo electrónico</Label>
+                <Input placeholder="paciente@correo.com" type="email" {...register("email")} />
+                {errors.email && <p className="text-xs text-red-500">{errors.email.message}</p>}
+              </div>
+              <div className="space-y-1.5">
+                <Label>WhatsApp</Label>
+                <Input placeholder="+52 55 1234 5678" type="tel" {...register("whatsapp")} />
               </div>
             </div>
           </CardContent>
