@@ -4,6 +4,8 @@ const qrcode = require("qrcode-terminal") as {
   generate: (qr: string, options?: { small?: boolean }) => void;
 };
 
+const isBuildTime = process.env.NEXT_PHASE === "phase-production-build";
+
 declare global {
   // eslint-disable-next-line no-var
   var __whatsappClient: Client | null;
@@ -72,6 +74,7 @@ function makeClient(dataPath: string): Client {
 }
 
 export async function getWhatsAppClient(): Promise<Client> {
+  if (isBuildTime) throw new Error("WhatsApp no disponible durante build");
   if (global.__whatsappClient && global.__whatsappReady) return global.__whatsappClient;
 
   if (global.__whatsappInitPromise) return global.__whatsappInitPromise;

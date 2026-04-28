@@ -36,6 +36,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   console.log("--- Inicio send-whatsapp ---");
   console.log("isWhatsAppReady():", isWhatsAppReady());
   console.log("Esperando cliente...");
+  void getWhatsAppClient(); // trigger lazy initialization
   try {
     await waitForReady(15000);
   } catch {
