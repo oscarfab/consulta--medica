@@ -70,7 +70,7 @@ export function AgendaClient({ patients, doctors, currentUserId, userRole }: Pro
 
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
 
-  const { register, handleSubmit, control, reset, setValue, formState: { errors } } = useForm<ApptForm>({
+  const { register, handleSubmit, control, reset, setValue, watch, formState: { errors } } = useForm<ApptForm>({
     resolver: zodResolver(apptSchema),
     defaultValues: { status: "PENDIENTE", doctorId: currentUserId },
   });
@@ -328,43 +328,31 @@ export function AgendaClient({ patients, doctors, currentUserId, userRole }: Pro
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="space-y-1.5">
               <Label>Paciente *</Label>
-              <Controller
-                control={control}
-                name="patientId"
-                render={({ field }) => (
-                  <Select key={`patient-${editingAppt?.id ?? "new"}`} onValueChange={field.onChange} value={field.value}>
-                    <SelectTrigger className={errors.patientId ? "border-red-500" : ""}>
-                      <SelectValue placeholder="Seleccionar paciente" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {patients.map((p) => (
-                        <SelectItem key={p.id} value={p.id}>{p.fullName}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
-              />
+              <select
+                className={`w-full border rounded-md p-2 text-sm bg-white ${errors.patientId ? "border-red-500" : "border-input"}`}
+                value={watch("patientId") ?? ""}
+                onChange={(e) => setValue("patientId", e.target.value)}
+              >
+                <option value="">Seleccionar paciente</option>
+                {patients.map((p) => (
+                  <option key={p.id} value={p.id}>{p.fullName}</option>
+                ))}
+              </select>
               {errors.patientId && <p className="text-xs text-red-500">{errors.patientId.message}</p>}
             </div>
 
             <div className="space-y-1.5">
               <Label>Médico *</Label>
-              <Controller
-                control={control}
-                name="doctorId"
-                render={({ field }) => (
-                  <Select key={`doctor-${editingAppt?.id ?? "new"}`} onValueChange={field.onChange} value={field.value}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Seleccionar médico" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {doctors.map((d) => (
-                        <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
-              />
+              <select
+                className="w-full border border-input rounded-md p-2 text-sm bg-white"
+                value={watch("doctorId") ?? ""}
+                onChange={(e) => setValue("doctorId", e.target.value)}
+              >
+                <option value="">Seleccionar médico</option>
+                {doctors.map((d) => (
+                  <option key={d.id} value={d.id}>{d.name}</option>
+                ))}
+              </select>
             </div>
 
             <div className="space-y-1.5">
