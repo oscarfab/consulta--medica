@@ -8,7 +8,7 @@ import { renderToBuffer } from "@react-pdf/renderer";
 import { PrescriptionPDF } from "@/lib/prescription-pdf";
 import React from "react";
 import { MessageMedia } from "whatsapp-web.js";
-import { getWhatsAppClient, waitForReady, isWhatsAppReady } from "@/lib/whatsapp-client";
+import { getWhatsAppClient, isWhatsAppReady } from "@/lib/whatsapp-client";
 
 const sendSchema = z.object({
   phone: z.string().min(10),
@@ -33,15 +33,12 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   const parsed = sendSchema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: parsed.error }, { status: 400 });
 
-  console.log("--- Inicio send-whatsapp ---");
-  console.log("isWhatsAppReady():", isWhatsAppReady());
-  console.log("Esperando cliente...");
-  void getWhatsAppClient(); // trigger lazy initialization
-  try {
-    await waitForReady(15000);
-  } catch {
+  if (!isWhatsAppReady()) {
     return NextResponse.json(
-      { error: "WhatsApp no está listo, intenta en unos segundos" },
+      {
+        error:
+          "WhatsApp no está conectado. Ve a Configuración → Conexión WhatsApp para vincular tu dispositivo.",
+      },
       { status: 503 }
     );
   }

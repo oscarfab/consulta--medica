@@ -1,8 +1,4 @@
 import { Client, LocalAuth } from "whatsapp-web.js";
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const qrcode = require("qrcode-terminal") as {
-  generate: (qr: string, options?: { small?: boolean }) => void;
-};
 
 const isBuildTime = process.env.NEXT_PHASE === "phase-production-build";
 
@@ -13,18 +9,20 @@ declare global {
   var __whatsappReady: boolean;
   // eslint-disable-next-line no-var
   var __whatsappInitPromise: Promise<Client> | null;
+  // eslint-disable-next-line no-var
+  var __whatsappQR: string | null;
 }
 
 global.__whatsappClient = global.__whatsappClient || null;
 global.__whatsappReady = global.__whatsappReady || false;
 global.__whatsappInitPromise = global.__whatsappInitPromise || null;
+global.__whatsappQR = global.__whatsappQR || null;
 
-function makeClient(dataPath: string): Client {
+function makeClient(): Client {
   const c = new Client({
-    authStrategy: new LocalAuth({ dataPath }),
+    authStrategy: new LocalAuth({ dataPath: "/tmp/.wwebjs_auth" }),
     puppeteer: {
-      executablePath:
-        process.env.PUPPETEER_EXECUTABLE_PATH || "/usr/bin/chromium",
+      executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || "/usr/bin/chromium",
       headless: true,
       args: [
         "--no-sandbox",
@@ -41,76 +39,106 @@ function makeClient(dataPath: string): Client {
     },
   });
 
-  c.on("qr", (qr: string) => {
-    console.log("=== ESCANEA ESTE QR CON TU WHATSAPP ===");
-    qrcode.generate(qr, { small: true });
+  c.on("qr", async (qr: string) => {
+    const QRCode = await import("qrcode");
+    global.__whatsappQR = await QRCode.toDataURL(qr);
+    console.log("QR generado para la UI");
   });
 
   c.on("ready", () => {
-    console.log("✅ Evento: ready - isReady:", global.__whatsappReady);
+    global.__whatsappQR = null;
     global.__whatsappReady = true;
+    console.log("✅ WhatsApp listo");
   });
 
   c.on("authenticated", () => {
-    console.log("🔐 Evento: authenticated - isReady:", global.__whatsappReady);
     global.__whatsappReady = true;
+    console.log("🔐 WhatsApp autenticado");
   });
 
   c.on("auth_failure", (msg: string) => {
-    console.log("❌ Evento: auth_failure:", msg);
+    console.error("❌ auth_failure:", msg);
+    global.__whatsappReady = false;
+    global.__whatsappClient = null;
+    global.__whatsappInitPromise = null;
+    global.__whatsappQR = null;
   });
 
   c.on("loading_screen", (percent: number, message: string) => {
-    console.log(`⏳ Cargando WhatsApp: ${percent}% - ${message}`);
+    console.log(`⏳ Cargando: ${percent}% - ${message}`);
   });
 
   c.on("disconnected", () => {
     global.__whatsappReady = false;
     global.__whatsappClient = null;
     global.__whatsappInitPromise = null;
+    global.__whatsappQR = null;
   });
 
   return c;
 }
 
-export async function getWhatsAppClient(): Promise<Client> {
-  if (isBuildTime) throw new Error("WhatsApp no disponible durante build");
-  if (global.__whatsappClient && global.__whatsappReady) return global.__whatsappClient;
+export type WhatsAppStatus = "disconnected" | "connecting" | "connected";
 
-  if (global.__whatsappInitPromise) return global.__whatsappInitPromise;
+export function getWhatsAppStatus(): WhatsAppStatus {
+  if (global.__whatsappReady) return "connected";
+  if (global.__whatsappInitPromise) return "connecting";
+  return "disconnected";
+}
 
-  global.__whatsappInitPromise = (async () => {
-    global.__whatsappClient = makeClient(".wwebjs_auth");
+export function getCurrentQR(): string | null {
+  return global.__whatsappQR || null;
+}
 
+export function isWhatsAppReady(): boolean {
+  return global.__whatsappReady || false;
+}
+
+export function connectWhatsApp(): void {
+  if (isBuildTime) return;
+  if (global.__whatsappReady || global.__whatsappInitPromise) return;
+
+  const client = makeClient();
+  global.__whatsappClient = client;
+
+  global.__whatsappInitPromise = (async (): Promise<Client> => {
     try {
-      await global.__whatsappClient.initialize();
+      await client.initialize();
+      return client;
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "";
       if (msg.includes("already running")) {
-        console.log("Reiniciando con nueva sesión...");
-        global.__whatsappClient = null;
-        global.__whatsappReady = false;
-        global.__whatsappInitPromise = null;
-
-        const newClient = makeClient(".wwebjs_auth2");
-        await newClient.initialize();
-        global.__whatsappClient = newClient;
-        return newClient;
+        const fresh = makeClient();
+        global.__whatsappClient = fresh;
+        await fresh.initialize();
+        return fresh;
       }
       global.__whatsappInitPromise = null;
       throw err;
     }
-
-    console.log("Estado final isReady:", global.__whatsappReady);
-    console.log("Cliente existe:", !!global.__whatsappClient);
-    return global.__whatsappClient;
   })();
-
-  return global.__whatsappInitPromise;
 }
 
-export function isWhatsAppReady(): boolean {
-  return global.__whatsappReady;
+export async function disconnectWhatsApp(): Promise<void> {
+  const client = global.__whatsappClient;
+  global.__whatsappClient = null;
+  global.__whatsappReady = false;
+  global.__whatsappInitPromise = null;
+  global.__whatsappQR = null;
+  if (client) {
+    try {
+      await client.destroy();
+    } catch {
+      // ignore
+    }
+  }
+}
+
+export async function getWhatsAppClient(): Promise<Client> {
+  if (isBuildTime) throw new Error("WhatsApp no disponible durante build");
+  if (global.__whatsappClient && global.__whatsappReady) return global.__whatsappClient;
+  if (!global.__whatsappInitPromise) throw new Error("WhatsApp no está conectado");
+  return global.__whatsappInitPromise;
 }
 
 export async function waitForReady(maxWait = 15000): Promise<void> {
@@ -119,7 +147,6 @@ export async function waitForReady(maxWait = 15000): Promise<void> {
     if (Date.now() - start > maxWait) {
       throw new Error("WhatsApp no está listo, intenta en unos segundos");
     }
-    console.log("Esperando... isReady:", global.__whatsappReady, "tiempo:", Date.now() - start, "ms");
     await new Promise<void>((r) => setTimeout(r, 500));
   }
 }

@@ -4,6 +4,7 @@ import { startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth,
 import { es } from "date-fns/locale";
 import Link from "next/link";
 import { CalendarPlus, UserPlus, Search, Calendar, Users, ClipboardList, Clock } from "lucide-react";
+import { WhatsAppBadge } from "./whatsapp-badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -67,6 +68,7 @@ export default async function DashboardPage() {
         <p className="text-slate-500 text-sm mt-1 capitalize">
           {format(now, "EEEE d 'de' MMMM 'de' yyyy", { locale: es })}
         </p>
+        {isDoctor && <WhatsAppBadge />}
       </div>
 
       {/* Stats */}

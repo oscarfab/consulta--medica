@@ -3,14 +3,28 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
-import { Loader2, Save, User, Building, Stethoscope, Shield } from "lucide-react";
+import {
+  Loader2,
+  Save,
+  User,
+  Building,
+  Stethoscope,
+  Shield,
+  MessageCircle,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 
@@ -24,6 +38,7 @@ const profileSchema = z.object({
 });
 
 type ProfileForm = z.infer<typeof profileSchema>;
+type WhatsAppStatus = "disconnected" | "connecting" | "connected";
 
 interface User {
   id?: string;
@@ -44,6 +59,11 @@ interface Props {
 export function ConfigClient({ user }: Props) {
   const [saving, setSaving] = useState(false);
 
+  // WhatsApp state
+  const [waStatus, setWaStatus] = useState<WhatsAppStatus>("disconnected");
+  const [waQR, setWaQR] = useState<string | null>(null);
+  const [waLoading, setWaLoading] = useState(false);
+
   const { register, handleSubmit, formState: { errors, isDirty } } = useForm<ProfileForm>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
@@ -55,6 +75,58 @@ export function ConfigClient({ user }: Props) {
       clinicPhone: user?.clinicPhone || "",
     },
   });
+
+  // Fetch initial WhatsApp status
+  useEffect(() => {
+    fetch("/api/whatsapp/connect")
+      .then((r) => r.json())
+      .then((d) => {
+        setWaStatus(d.status);
+        setWaQR(d.qr);
+      })
+      .catch(() => {});
+  }, []);
+
+  // Poll every 2 s while connecting
+  useEffect(() => {
+    if (waStatus !== "connecting") return;
+    const id = setInterval(() => {
+      fetch("/api/whatsapp/connect")
+        .then((r) => r.json())
+        .then((d) => {
+          setWaStatus(d.status);
+          setWaQR(d.qr);
+        })
+        .catch(() => {});
+    }, 2000);
+    return () => clearInterval(id);
+  }, [waStatus]);
+
+  const handleConnect = async () => {
+    setWaLoading(true);
+    try {
+      const res = await fetch("/api/whatsapp/connect", { method: "POST" });
+      if (res.ok) setWaStatus("connecting");
+      else toast.error("Error al iniciar conexión");
+    } catch {
+      toast.error("Error al conectar WhatsApp");
+    } finally {
+      setWaLoading(false);
+    }
+  };
+
+  const handleDisconnect = async () => {
+    setWaLoading(true);
+    try {
+      await fetch("/api/whatsapp/connect", { method: "DELETE" });
+      setWaStatus("disconnected");
+      setWaQR(null);
+    } catch {
+      toast.error("Error al desconectar WhatsApp");
+    } finally {
+      setWaLoading(false);
+    }
+  };
 
   const onSubmit = async (data: ProfileForm) => {
     setSaving(true);
@@ -220,7 +292,114 @@ export function ConfigClient({ user }: Props) {
         </div>
       </form>
 
-      {/* Security section */}
+      {/* WhatsApp */}
+      <Card id="whatsapp" className="border-0 shadow-sm">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base text-slate-700 flex items-center gap-2">
+            <MessageCircle className="w-4 h-4" /> Conexión WhatsApp
+          </CardTitle>
+          <CardDescription className="text-xs">
+            Vincula tu WhatsApp para enviar recetas directamente a los pacientes
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Status row */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span
+                className={`w-2.5 h-2.5 rounded-full ${
+                  waStatus === "connected"
+                    ? "bg-green-500"
+                    : waStatus === "connecting"
+                    ? "bg-yellow-400 animate-pulse"
+                    : "bg-red-500"
+                }`}
+              />
+              <span
+                className={`text-sm font-medium ${
+                  waStatus === "connected"
+                    ? "text-green-700"
+                    : waStatus === "connecting"
+                    ? "text-yellow-700"
+                    : "text-red-700"
+                }`}
+              >
+                {waStatus === "connected"
+                  ? "Conectado ✅"
+                  : waStatus === "connecting"
+                  ? "Conectando..."
+                  : "Desconectado"}
+              </span>
+            </div>
+
+            <div className="flex gap-2">
+              {waStatus === "disconnected" && (
+                <Button
+                  type="button"
+                  onClick={handleConnect}
+                  disabled={waLoading}
+                  size="sm"
+                  className="bg-green-600 hover:bg-green-700 text-white gap-1.5"
+                >
+                  {waLoading ? (
+                    <Loader2 className="w-3 h-3 animate-spin" />
+                  ) : (
+                    <MessageCircle className="w-3 h-3" />
+                  )}
+                  Conectar WhatsApp
+                </Button>
+              )}
+              {waStatus === "connected" && (
+                <Button
+                  type="button"
+                  onClick={handleDisconnect}
+                  disabled={waLoading}
+                  variant="outline"
+                  size="sm"
+                  className="border-red-200 text-red-600 hover:bg-red-50 gap-1.5"
+                >
+                  {waLoading && <Loader2 className="w-3 h-3 animate-spin" />}
+                  Desconectar
+                </Button>
+              )}
+            </div>
+          </div>
+
+          <Separator />
+
+          {/* QR code */}
+          {waStatus === "connecting" && waQR && (
+            <div className="flex flex-col items-center gap-3 p-4 bg-slate-50 rounded-xl">
+              <img src={waQR} alt="QR WhatsApp" className="w-64 h-64 rounded-lg" />
+              <p className="text-xs text-slate-500 text-center max-w-xs leading-relaxed">
+                Abre WhatsApp en tu celular → Dispositivos vinculados →{" "}
+                Vincular un dispositivo → Escanea este código
+              </p>
+            </div>
+          )}
+
+          {waStatus === "connecting" && !waQR && (
+            <div className="flex items-center gap-2 text-sm text-yellow-700 bg-yellow-50 p-3 rounded-lg">
+              <Loader2 className="w-4 h-4 animate-spin flex-shrink-0" />
+              Iniciando WhatsApp, espera un momento...
+            </div>
+          )}
+
+          {waStatus === "connected" && (
+            <p className="text-sm text-green-700 bg-green-50 p-3 rounded-lg">
+              ✅ Ya puedes enviar recetas por WhatsApp desde la vista de receta del paciente.
+            </p>
+          )}
+
+          {waStatus === "disconnected" && (
+            <p className="text-xs text-slate-400">
+              Una vez conectado, podrás enviar recetas en PDF directamente al WhatsApp de tus pacientes.
+            </p>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Security */}
       <Card className="border-0 shadow-sm">
         <CardHeader className="pb-3">
           <CardTitle className="text-base text-slate-700 flex items-center gap-2">
