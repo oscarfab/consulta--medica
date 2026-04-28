@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, Patient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import { addDays, subDays } from "date-fns";
 
@@ -140,7 +140,7 @@ async function main() {
     };
   });
 
-  const pacientes = [];
+  const pacientes: Patient[] = [];
   for (const data of pacientesData) {
     const p = await prisma.patient.upsert({
       where: { curp: data.curp },
