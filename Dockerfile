@@ -21,6 +21,8 @@ COPY . .
 
 RUN npx prisma generate
 RUN npm run build
+RUN cp -r .next/static .next/standalone/.next/static
+RUN cp -r public .next/standalone/public
 
 ENV HOSTNAME="0.0.0.0"
 ENV PORT=8080
