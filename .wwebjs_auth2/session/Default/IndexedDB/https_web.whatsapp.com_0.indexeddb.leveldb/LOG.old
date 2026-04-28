@@ -1,44 +1,14 @@
-2026/04/27-17:32:08.852 855c Reusing MANIFEST C:\Users\HP\Desktop\medical-center\.wwebjs_auth2\session\Default\IndexedDB\https_web.whatsapp.com_0.indexeddb.leveldb/MANIFEST-000001
-2026/04/27-17:32:08.852 855c Recovering log #6
-2026/04/27-17:32:08.904 855c Reusing old log C:\Users\HP\Desktop\medical-center\.wwebjs_auth2\session\Default\IndexedDB\https_web.whatsapp.com_0.indexeddb.leveldb/000006.log 
-2026/04/27-17:32:08.904 855c Delete type=2 #5
-2026/04/27-17:32:08.905 855c Delete type=2 #7
-2026/04/27-17:32:11.856 2d00 Level-0 table #11: started
-2026/04/27-17:32:11.881 2d00 Level-0 table #11: 1073831 bytes OK
-2026/04/27-17:32:11.884 2d00 Delete type=0 #6
-2026/04/27-17:32:12.771 1d40 Compacting 1@1 + 1@2 files
-2026/04/27-17:32:12.812 1d40 Generated table #12@1: 29811 keys, 1177613 bytes
-2026/04/27-17:32:12.812 1d40 Compacted 1@1 + 1@2 files => 1177613 bytes
-2026/04/27-17:32:12.813 1d40 compacted to: files[ 0 0 1 0 0 0 0 ]
-2026/04/27-17:32:12.814 1d40 Delete type=2 #8
-2026/04/27-17:32:12.814 1d40 Delete type=2 #11
-2026/04/27-17:33:09.682 1d40 Level-0 table #14: started
-2026/04/27-17:33:09.710 1d40 Level-0 table #14: 1258529 bytes OK
-2026/04/27-17:33:09.712 1d40 Delete type=0 #10
-2026/04/27-17:33:11.725 1d40 Compacting 1@1 + 1@2 files
-2026/04/27-17:33:11.772 1d40 Generated table #15@1: 49987 keys, 1793719 bytes
-2026/04/27-17:33:11.773 1d40 Compacted 1@1 + 1@2 files => 1793719 bytes
-2026/04/27-17:33:11.773 1d40 compacted to: files[ 0 0 1 0 0 0 0 ]
-2026/04/27-17:33:11.773 1d40 Delete type=2 #12
-2026/04/27-17:33:11.774 1d40 Delete type=2 #14
-2026/04/27-17:34:45.777 1d40 Level-0 table #17: started
-2026/04/27-17:34:45.814 1d40 Level-0 table #17: 1301458 bytes OK
-2026/04/27-17:34:45.816 1d40 Delete type=0 #13
-2026/04/27-17:35:15.522 1d40 Compacting 1@1 + 1@2 files
-2026/04/27-17:35:15.597 1d40 Generated table #18@1: 68430 keys, 2221261 bytes
-2026/04/27-17:35:15.602 1d40 Generated table #19@1: 989 keys, 24477 bytes
-2026/04/27-17:35:15.602 1d40 Compacted 1@1 + 1@2 files => 2245738 bytes
-2026/04/27-17:35:15.603 1d40 compacted to: files[ 0 0 2 0 0 0 0 ]
-2026/04/27-17:35:15.603 1d40 Delete type=2 #15
-2026/04/27-17:35:15.603 1d40 Delete type=2 #17
-2026/04/27-17:35:17.202 1d40 Level-0 table #21: started
-2026/04/27-17:35:17.224 1d40 Level-0 table #21: 1231262 bytes OK
-2026/04/27-17:35:17.226 1d40 Delete type=0 #16
-2026/04/27-17:35:17.508 1d40 Compacting 1@1 + 2@2 files
-2026/04/27-17:35:17.562 1d40 Generated table #22@1: 60791 keys, 2211109 bytes
-2026/04/27-17:35:17.580 1d40 Generated table #23@1: 27966 keys, 520508 bytes
-2026/04/27-17:35:17.580 1d40 Compacted 1@1 + 2@2 files => 2731617 bytes
-2026/04/27-17:35:17.581 1d40 compacted to: files[ 0 0 2 0 0 0 0 ]
-2026/04/27-17:35:17.582 1d40 Delete type=2 #18
-2026/04/27-17:35:17.582 1d40 Delete type=2 #19
-2026/04/27-17:35:17.582 1d40 Delete type=2 #21
+2026/04/27-17:55:33.975 1bbc Reusing MANIFEST C:\Users\HP\Desktop\medical-center\.wwebjs_auth2\session\Default\IndexedDB\https_web.whatsapp.com_0.indexeddb.leveldb/MANIFEST-000001
+2026/04/27-17:55:33.975 1bbc Recovering log #20
+2026/04/27-17:55:33.979 1bbc Reusing old log C:\Users\HP\Desktop\medical-center\.wwebjs_auth2\session\Default\IndexedDB\https_web.whatsapp.com_0.indexeddb.leveldb/000020.log 
+2026/04/27-17:57:34.210 6620 Level-0 table #26: started
+2026/04/27-17:57:34.235 6620 Level-0 table #26: 1428655 bytes OK
+2026/04/27-17:57:34.238 6620 Delete type=0 #20
+2026/04/27-17:57:34.502 6620 Compacting 1@1 + 2@2 files
+2026/04/27-17:57:34.562 6620 Generated table #27@1: 52218 keys, 2204340 bytes
+2026/04/27-17:57:34.618 6620 Generated table #28@1: 79171 keys, 1717917 bytes
+2026/04/27-17:57:34.618 6620 Compacted 1@1 + 2@2 files => 3922257 bytes
+2026/04/27-17:57:34.619 6620 compacted to: files[ 0 0 2 0 0 0 0 ]
+2026/04/27-17:57:34.619 6620 Delete type=2 #22
+2026/04/27-17:57:34.619 6620 Delete type=2 #23
+2026/04/27-17:57:34.620 6620 Delete type=2 #26

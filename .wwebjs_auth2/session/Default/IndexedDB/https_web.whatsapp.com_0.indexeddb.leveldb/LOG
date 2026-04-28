@@ -1,14 +1,14 @@
-2026/04/27-17:55:33.975 1bbc Reusing MANIFEST C:\Users\HP\Desktop\medical-center\.wwebjs_auth2\session\Default\IndexedDB\https_web.whatsapp.com_0.indexeddb.leveldb/MANIFEST-000001
-2026/04/27-17:55:33.975 1bbc Recovering log #20
-2026/04/27-17:55:33.979 1bbc Reusing old log C:\Users\HP\Desktop\medical-center\.wwebjs_auth2\session\Default\IndexedDB\https_web.whatsapp.com_0.indexeddb.leveldb/000020.log 
-2026/04/27-17:57:34.210 6620 Level-0 table #26: started
-2026/04/27-17:57:34.235 6620 Level-0 table #26: 1428655 bytes OK
-2026/04/27-17:57:34.238 6620 Delete type=0 #20
-2026/04/27-17:57:34.502 6620 Compacting 1@1 + 2@2 files
-2026/04/27-17:57:34.562 6620 Generated table #27@1: 52218 keys, 2204340 bytes
-2026/04/27-17:57:34.618 6620 Generated table #28@1: 79171 keys, 1717917 bytes
-2026/04/27-17:57:34.618 6620 Compacted 1@1 + 2@2 files => 3922257 bytes
-2026/04/27-17:57:34.619 6620 compacted to: files[ 0 0 2 0 0 0 0 ]
-2026/04/27-17:57:34.619 6620 Delete type=2 #22
-2026/04/27-17:57:34.619 6620 Delete type=2 #23
-2026/04/27-17:57:34.620 6620 Delete type=2 #26
+2026/04/27-18:42:13.787 1e9c Reusing MANIFEST C:\Users\HP\Desktop\medical-center\.wwebjs_auth2\session\Default\IndexedDB\https_web.whatsapp.com_0.indexeddb.leveldb/MANIFEST-000001
+2026/04/27-18:42:13.796 1e9c Recovering log #25
+2026/04/27-18:42:13.823 1e9c Reusing old log C:\Users\HP\Desktop\medical-center\.wwebjs_auth2\session\Default\IndexedDB\https_web.whatsapp.com_0.indexeddb.leveldb/000025.log 
+2026/04/27-18:42:16.829 1694 Level-0 table #31: started
+2026/04/27-18:42:16.849 1694 Level-0 table #31: 1194726 bytes OK
+2026/04/27-18:42:16.850 1694 Delete type=0 #25
+2026/04/27-18:42:16.851 1694 Compacting 1@1 + 2@2 files
+2026/04/27-18:42:16.910 1694 Generated table #32@1: 47595 keys, 2193099 bytes
+2026/04/27-18:42:16.973 1694 Generated table #33@1: 94530 keys, 2232187 bytes
+2026/04/27-18:42:16.974 1694 Compacted 1@1 + 2@2 files => 4425286 bytes
+2026/04/27-18:42:16.974 1694 compacted to: files[ 0 0 2 0 0 0 0 ]
+2026/04/27-18:42:16.975 1694 Delete type=2 #27
+2026/04/27-18:42:16.975 1694 Delete type=2 #28
+2026/04/27-18:42:16.975 1694 Delete type=2 #31

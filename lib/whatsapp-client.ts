@@ -21,6 +21,8 @@ function makeClient(dataPath: string): Client {
   const c = new Client({
     authStrategy: new LocalAuth({ dataPath }),
     puppeteer: {
+      executablePath:
+        process.env.PUPPETEER_EXECUTABLE_PATH || "/usr/bin/chromium",
       headless: true,
       args: [
         "--no-sandbox",
